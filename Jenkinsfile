@@ -24,8 +24,8 @@ pipeline {
         stage('Push Image') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'DockerHub',
-                    usernameVariable: 'USER',
+                    credentialsId: 'DockerHub'
+                    usernameVariable: 'USER'
                     passwordVariable: 'PASS'
                 )]) {
                     sh '''
