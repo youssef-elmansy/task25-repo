@@ -4,10 +4,16 @@ pipeline {
     environment {
         IMAGE_NAME = "youssefaelmansy/java_app"
         TAG = "${BUILD_NUMBER}"
-        GIT_REPO = "https://github.com/youssef-elmansy/argocd-repo-task25.git"
+        GITOPS_REPO = "https://github.com/youssef-elmansy/argocd-repo-task25.git"
     }
 
     stages {
+
+        stage('Unit Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
 
         stage('Build App') {
             steps {
@@ -15,13 +21,13 @@ pipeline {
             }
         }
 
-        stage('Build Image') {
+        stage('Build Docker Image') {
             steps {
                 sh "docker build -t ${IMAGE_NAME}:${TAG} ."
             }
         }
 
-        stage('Push Image') {
+        stage('Push to Docker Hub') {
             steps {
                 withCredentials([
                     usernamePassword(
@@ -38,13 +44,13 @@ pipeline {
             }
         }
 
-        stage('Remove Local Image') {
+        stage('Delete Local Image') {
             steps {
                 sh "docker rmi ${IMAGE_NAME}:${TAG} || true"
             }
         }
 
-        stage('Update deployment.yaml') {
+        stage('Update deployment.yaml (GitOps)') {
             steps {
                 withCredentials([
                     usernamePassword(
@@ -66,4 +72,17 @@ pipeline {
             }
         }
     }
+
+    post {
+        always {
+            echo "Pipeline finished!"
+        }
+        success {
+            echo "Image pushed & GitOps repo updated successfully!"
+        }
+        failure {
+            echo "Pipeline failed. Check the logs!"
+        }
+    }
 }
+
